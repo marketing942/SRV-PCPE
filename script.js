@@ -6,7 +6,7 @@
      1. INGRESSOS   preços e links de compra (a partir do CONFIG)
      2. RELÓGIO     a contagem regressiva até 06/03, 08h
      3. ENTRADA     as faíscas do carimbo do brasão na hero
-     4. PÁGINA      header, progresso, dock, reveal, carrossel
+     4. PÁGINA      header, progresso, dock, reveal
      5. ATMOSFERA   brasas, faíscas, brilho no cursor
 
    ⚠️ Tudo que muda com a venda (preços, links) mora no CONFIG abaixo.
@@ -295,7 +295,7 @@
   })();
 
   /* =========================================================
-     4 · HEADER, PROGRESSO, PARALLAX, DOCK, REVEAL, CARROSSEL
+     4 · HEADER, PROGRESSO, PARALLAX, DOCK, REVEAL
      ========================================================= */
   var header   = document.getElementById("header");
   var progress = document.getElementById("progress");
@@ -330,7 +330,7 @@
   render();
 
   /* ─── reveal ao rolar ─── */
-  var alvos = $$(".section__head, .pilar, .lineup__card, .carrossel, .info, .plano, .faq__item, .final__inner");
+  var alvos = $$(".section__head, .pilar, .lineup__card, .info, .plano, .faq__item, .final__inner");
   alvos.forEach(function (el) { el.classList.add("reveal"); });
 
   if (!("IntersectionObserver" in window)) {
@@ -347,96 +347,6 @@
     }, { threshold: 0.12, rootMargin: "0px 0px -60px" });
     alvos.forEach(function (el) { io.observe(el); });
   }
-
-  /* ─── carrossel da prova social ───
-     O trilho é scroll-snap nativo; aqui entram setas, bolinhas e o avanço
-     automático. O avanço para de vez no primeiro toque, clique ou foco do
-     visitante — quem está olhando uma foto não pode tê-la puxada da mão. */
-  $$("[data-carrossel]").forEach(function (raiz) {
-    var trilho = $("[data-carrossel-trilho]", raiz);
-    var itens  = $$(".carrossel__item", raiz);
-    var ctrl   = $("[data-carrossel-ctrl]", raiz);
-    var dotsEl = $("[data-carrossel-dots]", raiz);
-    if (!trilho || itens.length < 2) return;
-
-    var atual = 0;
-    var auto = null;
-    var parado = false;   // o visitante mexeu: o avanço automático não volta
-
-    var dots = itens.map(function (_, i) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "carrossel__dot";
-      b.setAttribute("aria-label", "Ir para a foto " + (i + 1));
-      b.addEventListener("click", function () { parar(); ir(i); });
-      dotsEl.appendChild(b);
-      return b;
-    });
-    if (ctrl) ctrl.hidden = false;
-
-    function marcar(i) {
-      atual = i;
-      dots.forEach(function (d, k) {
-        d.classList.toggle("is-on", k === i);
-        d.setAttribute("aria-current", k === i ? "true" : "false");
-      });
-      itens.forEach(function (it, k) { it.classList.toggle("is-on", k === i); });
-    }
-
-    function ir(i) {
-      var n = (i + itens.length) % itens.length;
-      var alvo = itens[n];
-      trilho.scrollTo({
-        left: alvo.offsetLeft - (trilho.clientWidth - alvo.clientWidth) / 2,
-        behavior: reduced ? "auto" : "smooth"
-      });
-      marcar(n);
-    }
-
-    /* a foto "atual" é a mais próxima do centro do trilho */
-    var raf = null;
-    trilho.addEventListener("scroll", function () {
-      if (raf) return;
-      raf = requestAnimationFrame(function () {
-        raf = null;
-        var meio = trilho.scrollLeft + trilho.clientWidth / 2;
-        var melhor = 0, dist = Infinity;
-        itens.forEach(function (it, k) {
-          var d = Math.abs(it.offsetLeft + it.clientWidth / 2 - meio);
-          if (d < dist) { dist = d; melhor = k; }
-        });
-        if (melhor !== atual) marcar(melhor);
-      });
-    }, { passive: true });
-
-    $("[data-carrossel-ant]", raiz).addEventListener("click", function () { parar(); ir(atual - 1); });
-    $("[data-carrossel-prox]", raiz).addEventListener("click", function () { parar(); ir(atual + 1); });
-    trilho.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowRight") { e.preventDefault(); parar(); ir(atual + 1); }
-      if (e.key === "ArrowLeft")  { e.preventDefault(); parar(); ir(atual - 1); }
-    });
-
-    function pausar() { clearInterval(auto); auto = null; }
-    function parar() { parado = true; pausar(); }
-    ["pointerdown", "wheel", "touchstart", "focusin"].forEach(function (ev) {
-      raiz.addEventListener(ev, parar, { passive: true });
-    });
-
-    marcar(0);
-
-    /* só anda sozinho enquanto está na tela */
-    if (!reduced && "IntersectionObserver" in window) {
-      new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting && !auto && !parado) {
-            auto = setInterval(function () { ir(atual + 1); }, 4500);
-          } else if (!e.isIntersecting) {
-            pausar();
-          }
-        });
-      }, { threshold: 0.5 }).observe(raiz);
-    }
-  });
 
   /* =========================================================
      5 · ATMOSFERA — brasas e faíscas
