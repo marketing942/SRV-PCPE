@@ -35,7 +35,7 @@
     ingressos: {
       comum: {
         produto: "Ingresso Comum — Super Revisão de Véspera PCPE",
-        preco: "",
+        preco: "R$ 35,00", precoDe: "R$ 99,00", off: "-65%",
         checkout: "https://checkout.cppem.com.br/pay/ingresso-comum-srv-pcpe-27"
       }
     }
